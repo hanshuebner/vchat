@@ -1,0 +1,3 @@
+CTRL-L abfangen.
+Nickname abfragen, bei fehlgeschlagenem login neuen nick abfragen.
+automatisches expandieren von nicknames mit TAB (security)

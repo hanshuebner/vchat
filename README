@@ -1,0 +1,35 @@
+This is the README file of the vchat implementation called VChat23.
+
+This software is licensed to you under the terms of the GNU public
+license  See the file COPYING for details.
+
+This is not a released product, but the working prototype of the
+chat server and client.
+
+The assumed running environment is a FreeBSD system with perl5
+installed.  An early revision of the client has been ported to
+Linux.
+
+There are two components in this distribution.  The program
+chatserver.pl handles the client messages and dispatches messages to
+the clients.  It is written in Perl, and uses a bunch of the newer
+features of Perl5.  The client frontend is written in C++ and talks to
+the server on port 2323.  It is best used with a terminal which
+supports a scrolling region (e.g. VT100).
+
+The chatserver also supports SSL connections through the use of
+the sslprox.pl script.  SSL connections can be preauthenticated if
+client certs are used.
+
+A new client, written in C and based on curses, is included in the
+client-count subdirectory of this distribution.  Please note that this
+client is not supported by me but by Count (count@flatline.de).  It
+may also have different licensing.
+
+Contact hans@vaxbusters.org if you find major security defiencies and/or
+feel like helping.  Please do not flame me for making an unfinished
+piece of crap available to the public.
+
+Thanks,
+Hans
+

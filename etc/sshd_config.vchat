@@ -1,0 +1,35 @@
+# This is ssh server systemwide configuration file.
+
+Port 2299
+IdleTimeout 30m
+ListenAddress 195.21.255.248
+HostKey /usr/local/etc/ssh_host_key
+RandomSeed /usr/local/etc/ssh_random_seed
+ServerKeyBits 768
+LoginGraceTime 600
+KeyRegenerationInterval 3600
+PermitRootLogin no
+IgnoreRhosts yes
+StrictModes yes
+QuietMode no
+X11Forwarding no
+X11DisplayOffset 10
+FascistLogging no
+PrintMotd yes
+KeepAlive no
+SyslogFacility AUTH
+RhostsAuthentication no
+RhostsRSAAuthentication no
+RSAAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+UseLogin no
+#DenyForwardingPort *
+AllowForwardingTo 195.21.255.248:2323
+#DenyForwardingTo *
+AllowUsers vchat
+# PidFile /u/zappa/.ssh/pid
+# AllowHosts *.our.com friend.other.com
+# DenyHosts lowsecurity.theirs.com *.evil.org evil.org
+# Umask 022
+# SilentDeny on

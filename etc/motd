@@ -1,0 +1,16 @@
+
+Feature: Unter der Url:
+
+   http://vchat.berlin.ccc.de/rd/latest
+
+kann ab jetzt immer der letzte Link abgerufen werden.
+
+Und da niemand behaupten soll, wir unterstuetzen nicht
+seltsame Formate, gibt es jetzt die rd-datenbank
+auch als rss file ;-)
+
+  http://vchat.berlin.ccc.de/rd/rss
+
+Und da auch niemand behaupten soll, wir unterstuetzen keine
+crypto, gibt es jetzt auch https://vchat.berlin.ccc.de/
+

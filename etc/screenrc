@@ -1,0 +1,8 @@
+startup_message off
+defscrollback 2000
+multiuser on
+acladd hans
+screen -t server /home/vchat/bin/chatserver.sh
+screen -t ca-clerk /home/vchat/bin/ca-clerk.sh
+screen -t sshd sudo /home/vchat/bin/vchat-sshd
+screen -t sslproxy /home/vchat/bin/sslproxy.sh

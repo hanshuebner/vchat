@@ -1,0 +1,11 @@
+First compile the stuff.
+Set up your environment variables:
+
+CHATHELPERL	=> path to chat.pl (from this directory)
+CHATSERVER	=> name:port of chat server (i.e. vchat.vaxbusters.org:2323)
+INPUTRC		=> path to inputrc (which should at least contain
+		   "set horizontal-scroll-mode on"
+
+'vchat' should be useable now.
+
+Good luck!

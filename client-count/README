@@ -1,0 +1,10 @@
+
+The vchat-client by Count <count@flatline.de> can be fetched using
+
+cvs -d :pserver:anonymous@pulse.flatline.de:/home/cvsroot login
+cvs -z3 -d :pserver:anonymous@pulse.flatline.de:/home/cvsroot co vchat/client-count
+
+(press return at password prompt)
+
+Please consult the README there.
+

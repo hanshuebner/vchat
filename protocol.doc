@@ -1,0 +1,194 @@
+Chat protocol.
+
+The protocol is designed to be useable both by humans and by user
+interface programs.
+
+Clients connect to the chat server using a tcp connection.  The
+connection is handled in a full-duplex fashion - Both the server and
+the client may submit messages at any time.
+The chat server prefixes all administrative messages with a
+three-digit positive number, a space and the message.  An exception to
+this rule are user messages (i.e. text entered from one participant to
+one or multiple other receipients).  These are prefixed by the nick
+name of the sender, enclosed in brackets ('<' and '>') for public
+messages or asterisks ('*') for private messages.
+
+Coded server messages may have parameters.  The parameters follow the
+space, and may themselves be followed by comments.  The parameters and
+the comments are delimited by a space character.  This makes additions
+of parameters to messages impossible.
+
+The following messages are defined for the server:
+
+100 <message...>
+
+Informational message for human consumption
+
+110 <channel> <nick> <fromhost>
+
+User status summary
+
+111 <date> <time> <code> <message>
+
+Server log information
+	
+112 <information>
+
+Server user information
+
+113 <ignore-info>
+
+Ignore command confirmation
+
+114 <nick> changed the channel topic to <topic>
+
+Channel topic change confirmation
+
+115 <channel> <topic>
+
+Channel status information
+
+116 <nick> <initial-nick> <from> <real-from> <clientinfo> <stats>
+
+User status information
+
+117 <nick> <statistics>
+
+User statistics information
+
+118 <nick> <action>
+
+User action information
+
+119 <nick> ...
+
+Nick list
+
+120 <nick>
+
+Authorized nick information
+
+121 
+
+Anonymous connection acknowledgement
+
+122 <time> <nick> <url> <description>
+
+URL-List entry
+
+123 <nick> <timestamp> <action> [ <timestamp> <action> ... ]
+
+Nick-Action information
+
+201 <protocol> <server-name>
+
+Server signon
+
+211 <nickname>
+
+User signon (sent to other users)
+
+212 <nickname>
+
+Use signon (sent to signing in user)
+
+221 <nickname>
+
+User signoff
+
+231 <nickname>
+
+Channel departure
+
+232 <nickname> 
+
+Channel join
+
+241 <oldnick> <newnick>
+
+Nickname change
+
+251 <nick> is your nick
+
+User login/nick change acknowledgement
+
+252 You are not logged in
+
+User login request
+
+
+301
+
+Message truncated
+
+302
+
+Message too long
+
+303
+
+No protocol lines matched expression.
+
+304
+
+Already in that channel
+
+305
+
+Still there?
+
+
+401 
+
+Character set failure, syntax error
+
+402
+
+Uninterpretible command
+
+403
+
+Not logged in
+
+404
+
+Already logged in
+
+405
+
+This is already the topic
+
+411
+
+Nickname in use
+
+412
+
+Nickname not found (private message not sent)
+
+413
+
+Channel not found
+
+414
+
+Access violation
+
+415 <nick>
+
+<nick> never logged in our out (no protocol entry)
+
+501
+
+Disconnected by own request
+
+502
+
+Disconnected by operator
+
+
+
+Message continuation is supported by replacing the space after the
+message code with a dash ('-') in all but the last lines of a message
+When a client connection
+has been established, the server responds with a signon message.
