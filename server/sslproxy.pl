@@ -8,7 +8,8 @@ use conf;
 
 foreach ([ $SSLkeyFile,  "SSL private key file" ],
 	 [ $SSLcertFile, "SSL server certificate file", ],
-	 [ $SSLcaFile,   "SSL CA file", ]) {
+	 [ $SSLcaFile,   "SSL CA file", ],
+	 [ $CAindex,	 "CA index file", ]) {
     my ($file, $description) = @$_;
     if (not -f $file or not -r $file) {
 	warn "$0: can't access $description $file ($!)\n";
@@ -37,6 +38,7 @@ $SIG{CLD} = 'IGNORE';
 while (1) {
 
     my $client;
+
     while ($client = IO::Socket::accept($serverSocket, 'IO::Socket::INET')) {
 
 	print STDERR "$0: new connection, forking\n";
@@ -113,8 +115,27 @@ sub handleClient {
         print STDERR "$0: [$$] issuer: '$issuer_name'.\n";
 
 	if ($subject_name =~ m-/CN=([^/]*)/-) {
-	    my $nick = $1;
-	    print ENV "CHATNICK=$nick\n";
+	 my $nick = $1;
+
+         open(CA_INDEX,$CAindex);
+
+# Checks if the certificate is revoked, if so.. drop user!
+# this is a dirty hack, because I only check the CA index file and don't do 
+# proper certificate validation
+
+         while(<CA_INDEX>) {
+	  if(/^R/ and m-$subject_name-) {
+           $clientHandle->close();
+           close(CA_INDEX);
+           close(ENV);
+           return;
+	  } 
+	 }
+
+	 close(CA_INDEX);
+
+	 print ENV "CHATNICK=$nick\n";
+
 	}
 
     } else { # wir wollen nicht dass untrustet user joinen
