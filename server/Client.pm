@@ -732,9 +732,9 @@ sub cmdChangeNick {
 	return 0;
     }
 
-    if ($nick =~ /^[0-9]/i) {
+    if ($nick !~ /[a-z]/i) {
 
-	$self->send("401 Invalid nick name (must not begin with digit) - Nick not changed");
+	$self->send("401 Invalid nick name (must contain alphabetic character) - Nick not changed");
 	return 0;
     }
 
@@ -1045,14 +1045,16 @@ sub cmdLogin {
 sub cmdURL {
     my $self = shift;
     my ($description, $url, $type) = @_;
-
+# if you need < > in descriptions
+#    $description =~ s/\</\&lt\;/g;
+#    $description =~ s/\>/\&gt\;/g;
 
     my $now = time;
     my $nick = $self->nick;
 
-   open(BACKUPFILE,">>/var/spool/vchat/backup-urlmap.txt");
-    print BACKUPFILE "$now|$nick|$url|$type|$description\n";
-   close(BACKUPFILE);
+#   open(BACKUPFILE,">>/var/spool/vchat/backup-urlmap.txt");
+#    print BACKUPFILE "$now|$nick|$url|$type|$description\n";
+#   close(BACKUPFILE);
 
 	#SQL Support
 	my $table="urlmap";
@@ -1074,8 +1076,8 @@ sub cmdURL {
         while (@row = $sth_urllog->fetchrow_array) {
 	 my ($date) = split(/\./,$row[0]);
 	 $self->send("122 $date $row[1]");
+	 $self->send("122 URL: https://vchat.berlin.ccc.de/rd/$row[3]");
 	 $self->send("122 Desc: $row[4]");
-	 $self->send("122 URL: https://vchat.berlin.ccc.de/rd/$row[2]\-$row[3]");
 	 $self->send("122 ");
         }
 
@@ -1087,12 +1089,17 @@ sub cmdURL {
 	return;
     }
 
+    if ($description =~ /\</ || $description =~ /\>/) {
+        $self->send("402 Invalid Description");
+        return;
+    }
+
     if ($url !~ m-^((ftp|https?|gopher|finger|telnet|ldap|sip|mailto|rtsp|iks)://.*\..*)$-) {
 	$self->send("402 Invalid URL");
 	return;
     }
 
-    if ($url =~ m-^http://vchat.berlin.ccc.de- || $url =~ m-^https://vchat.berlin.ccc.de-) {
+    if ($url =~ m-^http://vchat.berlin.ccc.de- || $url =~ m-^https://vchat.berlin.ccc.de- || $url =~ m-^https://vchat:reader\@vchat.berlin.ccc.de- ) {
 	$self->send("402 Invalid URL (can't self-reference)");
 	return;
     }
