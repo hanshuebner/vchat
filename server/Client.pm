@@ -1126,6 +1126,7 @@ sub cmdHelp {
 100-.c <chan>                    Change to channel with number <chan>\r
 100-.m <nick> <msg>              Send private message to <nick>\r
 100-.a <something>               Do <something>\r
+100-.o <something>               Think <something>\r
 100-.l <nick> <from> [<channel>] Log in (performed automatically by client)\r
 100-.n <nick>                    Change nickname to <nick>\r
 100-.f <from>                    Change \"From\" string\r
