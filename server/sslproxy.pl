@@ -9,7 +9,7 @@ use conf;
 foreach ([ $SSLkeyFile,  "SSL private key file" ],
 	 [ $SSLcertFile, "SSL server certificate file", ],
 	 [ $SSLcaFile,   "SSL CA file", ],
-	 [ $CAindex,	 "CA index file", ]) {
+	 [ $caIndexFile, "CA index file", ]) {
     my ($file, $description) = @$_;
     if (not -f $file or not -r $file) {
 	warn "$0: can't access $description $file ($!)\n";
@@ -117,7 +117,7 @@ sub handleClient {
 	if ($subject_name =~ m-/CN=([^/]*)/-) {
 	 my $nick = $1;
 
-         open(CA_INDEX,$CAindex);
+         open(CA_INDEX,$caIndexFile);
 
 # Checks if the certificate is revoked, if so.. drop user!
 # this is a dirty hack, because I only check the CA index file and don't do 
