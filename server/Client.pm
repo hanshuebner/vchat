@@ -9,6 +9,7 @@ use strict;
 
 use POSIX qw(strftime);
 use Fcntl;
+use DBI;
 use Socket;
 
 use conf;
@@ -171,9 +172,8 @@ if (open(ST,"sockstat|grep $peerPort|")) {
       my $pid = $1;
       my $command = $command{$pid} || "<undef>";
       print "[$pid] [$command]\n";
-    #  if ($command =~ /(bin\/vchat|sslpr)/) { # match client processes only
         $self->{'clientPid'} = $pid;
-    #  }
+    } else {
     }
   }
 } else {
@@ -242,9 +242,9 @@ sub new {
     $self->getAuthorizationInfo();
 
     if ($self->{'authorizedNick'} ne '') {
-	$self->send("120 $self->{'authorizedNick'} is your authorized nickname");
+        $self->send("120 $self->{'authorizedNick'} is your authorized nickname");
     } else {
-	$self->send("121 You don't have an authorized nickname");
+        $self->send("121 You don't have an authorized nickname");
     }
 
     return $self;
@@ -567,18 +567,18 @@ sub handleCommand
 
     } elsif ($command =~ /^\.o *(.*)/ || $command =~ /^\.O *(.*)/) {
 
-	my $thoughts = $1;
+	my $thoughts = "$1";
 	my $sentTo;
 
         if (not defined $self->channel) {
             $self->send("100 Not joined to a channel");
         } else {
 
-	if($command =~ /^\.o *(.+)/) {
+	if($command =~ /^\.o *(.*)/) {
 	 $sentTo
 		= $self->channel->send("124 ".$self->nick." .o( ".$thoughts." )",
 					$self);
-	} elsif($command =~ /^\.O *(.+)/) {
+	} elsif($command =~ /^\.O *(.*)/) {
 	 $sentTo
 		= $self->channel->send("124 ".$self->nick." .oO( ".$thoughts." )",
 					$self);
@@ -587,7 +587,7 @@ sub handleCommand
 	$self->resetIdleTime();
 
         if ($sentTo == 0) {
-		$self->send("100 Nobody sees what you think");
+		$self->send("100 Nobody sees what you do");
 	}
 
 	}
@@ -596,7 +596,13 @@ sub handleCommand
 
 	$self->resetIdleTime();
 
-	$self->cmdURL($1, $2);
+	$self->cmdURL($1, $2, "INITIAL");
+
+    } elsif ($command =~ /^\.U\s*(.*?) *(\S*)\s*$/) {
+
+	$self->resetIdleTime();
+
+	$self->cmdURL($1, $2, 'DUPE');
 
     } elsif ($command =~ /^\./ 
 	     and $command !~ /^\.\../) {
@@ -1033,31 +1039,51 @@ sub cmdLogin {
     }
     $self->{'channel'} = Channel::findOrCreate($channel)->join($self);
 
-    $self->protEnt("login");
+    $self->protEnt("- login:");
 }
-
-open(URLMAP, ">>$urlMapFile")
-    || warn "$0: can't open $urlMapFile: $!\n";
-
-autoflush URLMAP 1;
-
-my $id = 1;
-
-if (open(URLID, $urlIDFile)) {
-    $id = int scalar <URLID>;
-    close(URLID);
-}
-
-my @savedURLs;
 
 sub cmdURL {
     my $self = shift;
-    my ($description, $url) = @_;
+    my ($description, $url, $type) = @_;
+
+
+    my $now = time;
+    my $nick = $self->nick;
+
+   open(BACKUPFILE,">>/var/spool/vchat/backup-urlmap.txt");
+    print BACKUPFILE "$now|$nick|$url|$type|$description\n";
+   close(BACKUPFILE);
+
+	#SQL Support
+	my $table="urlmap";
+	my $dbname="vchatrd";
+	my $id;
+	my @row;
+	my $dbh = DBI->connect_cached("dbi:Pg:dbname=$dbname", "vchat", "be3fbc14bda14802314f075a52581013");
+
+	if (!$dbh)
+	{
+	 $self->send("402 connect to database failed");
+         return;
+	}
 
     if ($description eq "" and $url eq "") {
-	foreach (@savedURLs) {
-	    $self->send("122 " . join(" ", $_->[0], $_->[1], $_->[2], $_->[3]));
-	}
+	my $sth_urllog = $dbh->prepare("SELECT * FROM (SELECT zeitmarke,nickname,domain,rd_id,description FROM $table ORDER BY zeitmarke DESC LIMIT 10) foo ORDER BY zeitmarke ASC;");
+	$sth_urllog->execute();
+
+        while (@row = $sth_urllog->fetchrow_array) {
+	 my ($date) = split(/\./,$row[0]);
+	 $self->send("122 $date $row[1]");
+	 $self->send("122 Desc: $row[4]");
+	 $self->send("122 URL: https://vchat.berlin.ccc.de/rd/$row[2]\-$row[3]");
+	 $self->send("122 ");
+        }
+
+	return;
+    }
+
+    if ($description eq "") {
+	$self->send("402 No Description");
 	return;
     }
 
@@ -1066,7 +1092,7 @@ sub cmdURL {
 	return;
     }
 
-    if ($url =~ m-http://vchat.berlin.ccc.de/rd/- && $url =~ m-https://vchat.berlin.ccc.de/rd/-) {
+    if ($url =~ m-^http://vchat.berlin.ccc.de- || $url =~ m-^https://vchat.berlin.ccc.de-) {
 	$self->send("402 Invalid URL (can't self-reference)");
 	return;
     }
@@ -1077,39 +1103,65 @@ sub cmdURL {
 	return;
     }
 
-    foreach (@savedURLs) {
-	if ($_->[4] eq $url) {
-	    $self->send("402 duplicate URL (stored as $_->[2])");
-	    return;
+
+	my $sth_dupecheck = $dbh->prepare("SELECT domain,rd_id,nickname,zeitmarke,description FROM $table WHERE url ilike ?;");
+	$sth_dupecheck->execute($url);
+	@row = $sth_dupecheck->fetchrow_array;
+
+        if (@row)
+	{
+		my ($date) = split(/\./,$row[3]);
+		if($type eq "INITIAL")
+		{
+       			$self->send("402 duplicate URL (stored as ID\:$row[1] by $row[2] $date)");
+       			$self->send("402 Desc: $row[4]");
+			return;
+		}
+        }
+	elsif($type eq "DUPE")
+	{
+       		$self->send("402 can't repost URL, not in rd");
+		return;
 	}
-    }
 
-    my $domain = $1;
-    my $key = "${domain}-${id}";
-    my $now = time;
-    print URLMAP "$now $key ", $self->nick, " $url $description\n";
-    my $mappedURL = "https://vchat.berlin.ccc.de/rd/${key}";
 
-    if (scalar @savedURLs == 20) {
-	shift @savedURLs;
-    }
+	my $sth_id = $dbh->prepare("SELECT nextval('id_seq');");
+	$sth_id->execute();
 
-    push @savedURLs, [ strftime("%H:%M", localtime $now), $self->nick, $mappedURL, $description, $url ];
+	while (@row = $sth_id->fetchrow_array) {
+	 $id = $row[0];
+	}
 
-    if ($description ne "") {
-	$description .= " ";
-    }
+	my ($foo,$domain) = split(/\:\/\//,$url);
+	($domain) = split(/\//,$domain);
+	($domain) = split(/\:/,$domain);
+	while(length($domain) > 21)
+	{
+		my $fooname = "";
+		my @domainparts = split(/\./,$domain);
+		for(my $i=1;$i<=$#domainparts;$i++)
+		{
+			$fooname = $fooname.$domainparts[$i].".";
+		}
+		$domain = $fooname;
+		if($#domainparts == 2) { last; }
+	}
+	$domain =~ s/\.$//g;
 
-    $id++;
 
-    if (open(URLID, ">$urlIDFile")) {
-	print URLID $id, "\n";
-	close(URLID);
-    } else {
-	warn "$0: can't write to $urlIDFile: $!\n";
-    }
+    $now = time;
+    my $mappedURL = "https://vchat.berlin.ccc.de/rd/${id}";
 
-    $self->channel->send("[". $self->nick ."] $description$mappedURL");
+	my $sth_newentry = $dbh->prepare("INSERT INTO $table (zeitmarke,unixtime,domain,rd_id,nickname,url,description,content_length,fetched)
+                                  VALUES (?,?,?,?,?,?,?,?,?);");
+
+	$sth_newentry->execute('now()',$now,$domain,$id,$self->nick,$url,$description,0,'FALSE');
+
+	if($sth_newentry->errstr) {
+	 $self->send("402 Database Error");
+	} else {
+	 $self->channel->send("[". $self->nick ."] $domain: $description $mappedURL");
+	}
 }
 
 sub cmdHelp {
@@ -1122,26 +1174,30 @@ sub cmdHelp {
 100-\r
 100-Commands:\r
 100-.s [<channel>|<nick>]        Show status information about channels/users\r
+100-.S [<channel>]               Show short status information about channels\r
 100-.p <nick>                    Show last login/logout for <nick>\r
 100-.c <chan>                    Change to channel with number <chan>\r
 100-.m <nick> <msg>              Send private message to <nick>\r
 100-.a <something>               Do <something>\r
-100-.o <something>               Think <something>\r
+100-.o <something>               Think .o(<something>)\r
+100-.O <something>               Think .oO(<something>)\r
 100-.l <nick> <from> [<channel>] Log in (performed automatically by client)\r
 100-.n <nick>                    Change nickname to <nick>\r
 100-.f <from>                    Change \"From\" string\r
 100-.i [<string>]                Add <string> to your ignorance list or flush\r
 100-                             ignorance list if <string> is not given.\r
-100-.u [<description>] <url>     Abbreviate <url> and put it to the public\r
-100-                             URL list as well as to the current channel.\r
-100-                             https://vchat.berlin.ccc.de/rd/0 has the list\r
+100-.u <description> <url>       Abbreviate <url> and put it to the URL\r
+100-                             list as well as to the current channel.\r
+100-                             https://vchat.berlin.ccc.de/rd has the list\r
+100-                             Single .u shows last 10 URLs\r
+100-.U <description> <url>       Repost <url> and put it to the URL list.\r
 100-.e [encoding]                Set character set encoding of your client.\r
 100-.E                           Show list of known character set encodings.\r
 100-.t [<topic>]                 Show/set channel topic\r
 100-.x [<reason>]                Exit\r
 100-.h                           You just found out what this does.\r
 100-\r
-100 Problem reports may be directed to chef\@mux.berlin.ccc.de");
+100 Problem reports may be directed to vchat\@vchat.berlin.ccc.de");
 
 }
 
@@ -1168,7 +1224,7 @@ sub cmdExit {
 	close($self->{'fileDescriptor'});
     }
     delete $Extent{$self->{'nick'}};
-    $self->protEnt("logout");
+    $self->protEnt("- logout:");
 }
 
 sub cmdChangeFrom {
