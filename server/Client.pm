@@ -565,7 +565,7 @@ sub handleCommand
 	    }
 	}
 
-    } elsif ($command =~ /^\.o *(.+)/) {
+    } elsif ($command =~ /^\.o *(.+)/ || $command =~ /^\.O *(.+)/) {
 
 	my $thoughts = $1;
 
@@ -573,9 +573,15 @@ sub handleCommand
             $self->send("100 Not joined to a channel");
         } else {
 
+	if($command =~ /^\.o *(.+)/) {
 	my $sentTo
 		= $self->channel->send("124 ".$self->nick." .o( ".$thoughts." )",
 					$self);
+        } elsif($command =~ /^\.O *(.+)/) {
+	my $sentTo
+		= $self->channel->send("124 ".$self->nick." .oO( ".$thoughts." )",
+					$self);
+	}
 
 	$self->resetIdleTime();
 
