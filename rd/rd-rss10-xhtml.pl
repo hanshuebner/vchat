@@ -254,20 +254,20 @@ sub serve_request
             }
         }
 
-        print   "        </rdf:Seq>\n".
-                "    </items>\n";
+        print   "            </rdf:Seq>\n".
+                "        </items>\n";
 
-        print   "</channel>\n"; 
+        print   "    </channel>\n"; 
 
         foreach my $entry (@urls) {
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
-                print "<item rdf:about=\"https://vchat.berlin.ccc.de/rd/".$$entry[8]."\">\n";
-                print "    <title>".$$entry[4]."</title>\n";
-                print "    <link>".$$entry[5]."</link>\n";
-                print "    <dc:creator>".$$entry[7]."</dc:creator>\n";
-                print "    <dc:date>".$$entry[0]."$timediff</dc:date>\n";
-                print "</item>\n";
+                print "    <item rdf:about=\"https://vchat.berlin.ccc.de/rd/".$$entry[8]."\">\n";
+                print "        <title>".$$entry[4]."</title>\n";
+                print "        <link>".$$entry[5]."</link>\n";
+                print "        <dc:creator>".$$entry[7]."</dc:creator>\n";
+                print "        <dc:date>".$$entry[0]."$timediff</dc:date>\n";
+                print "    </item>\n";
             } else {
                 last;
             }
