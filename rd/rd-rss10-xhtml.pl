@@ -205,7 +205,9 @@ sub serve_request
 		    $deltat = 0;
         }
 
-        if($deltat==0){ $deltat=3600*24; }
+        if ($deltat == 0) {
+        	$deltat= 3600 * 24;
+        }
 
 
         use Time::Local;
@@ -221,29 +223,29 @@ sub serve_request
                 "    xmlns=\"http://purl.org/rss/1.0/\"\n".
                 "    xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n".
                 "    xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n".
-                "    xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n";
+                "    xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n";
 
-        print    "<channel rdf:about=\"https://vchat.berlin.ccc.de/rd/\">\n".
-                "    <title>vchat urilog</title>\n".
-                "    <link>https://vchat.berlin.ccc.de/rd/</link>\n".
-                "    <description>Log file of dropped vchat URIs</description>\n".
-                "    <dc:language>en</dc:language>\n".
-                "    <dc:creator>the vchat team</dc:creator>\n".
-                "    <dc:date>".sprintf("%04i-%02i-%02iT%02i:%02i%s",($t[5]+1900),$t[4]+1,$t[3],$t[2],$t[1],$timediff)."</dc:date>\n".
-                "    <dc:language>de-de</dc:language>\n".
-                "    <dc:rights>4 UrhG - Sammelwerke und Datenbanken</dc:rights>\n".
-                "    <sy:updatePeriod>hourly</sy:updatePeriod>\n".
-                "    <sy:updateFrequency>1</sy:updateFrequency>\n".
-                "    <sy:updateBase>".sprintf("%04i-%02i-%02iT%02i:%02i%s",($t[5]+1900),$t[4]+1,$t[3],$t[2],0,$timediff)."</sy:updateBase>\n";
+        print   "    <channel rdf:about=\"https://vchat.berlin.ccc.de/rd/\">\n".
+                "        <title>vchat urilog</title>\n".
+                "        <link>https://vchat.berlin.ccc.de/rd/</link>\n".
+                "        <description>Log file of dropped vchat URIs</description>\n".
+                "        <dc:language>de</dc:language>\n".
+                "        <dc:creator>the vchat team</dc:creator>\n".
+                "        <dc:date>".sprintf("%04i-%02i-%02iT%02i:%02i%s",($t[5]+1900),$t[4]+1,$t[3],$t[2],$t[1],$timediff)."</dc:date>\n".
+                "        <dc:language>de-de</dc:language>\n".
+                "        <dc:rights>4 UrhG - Sammelwerke und Datenbanken</dc:rights>\n".
+                "        <sy:updatePeriod>hourly</sy:updatePeriod>\n".
+                "        <sy:updateFrequency>1</sy:updateFrequency>\n".
+                "        <sy:updateBase>".sprintf("%04i-%02i-%02iT%02i:%02i%s",($t[5]+1900),$t[4]+1,$t[3],$t[2],0,$timediff)."</sy:updateBase>\n";
 
-        print   "     <items>\n".
-                "          <rdf:Seq>\n";
+        print   "            <items>\n".
+                "                <rdf:Seq>\n";
 
         foreach my $entry (@urls) {
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
 
-                print "            <rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/".$$entry[8]."\" />\n";
+                print "                <rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/".$$entry[8]."\" />\n";
             } else {
                 last;
             }
