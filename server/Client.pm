@@ -565,7 +565,7 @@ sub handleCommand
 	    }
 	}
 
-    } elsif ($command =~ /^\.o *(.+)/ || $command =~ /^\.O *(.+)/) {
+    } elsif ($command =~ /^\.o *(.*)/ || $command =~ /^\.O *(.*)/) {
 
 	my $thoughts = $1;
 	my $sentTo;
@@ -587,7 +587,7 @@ sub handleCommand
 	$self->resetIdleTime();
 
         if ($sentTo == 0) {
-		$self->send("100 Nobody sees what you do");
+		$self->send("100 Nobody sees what you think");
 	}
 
 	}
