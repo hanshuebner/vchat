@@ -13,6 +13,7 @@ use Socket;
 
 use conf;
 use Completion;
+use Unicode::MapUTF8 qw(to_utf8 from_utf8 utf8_supported_charset);
 
 my %Extent;
 my $clientCounter = 0;
@@ -222,6 +223,7 @@ sub new {
     $self->{'loginTime'} = time;
     $self->{'bytesIn'} = $self->{'bytesOut'} = 0;
     $self->{'ignore'} = [];
+    $self->{'encoding'} = "ISO-8859-1";
     $self->resetIdleTime();
 
     $Extent{$self->{'nick'}} = $self;
@@ -278,6 +280,13 @@ sub authorizedFrom
     return $self->{'authorizedFrom'};
 }
 
+sub encoding
+{
+    my $self = shift;
+
+    return $self->{'encoding'};
+}
+
 sub addIgnore
 {
     my $self = shift;
@@ -310,6 +319,16 @@ sub ignore
     return 0;
 }
 
+sub set_encoding
+{
+    my $self = shift;
+    my $encoding = shift;
+
+    $self->{'encoding'} = $encoding;
+
+    return 0;
+}
+
 sub clientinfo {
   my $self = shift;
 
@@ -329,6 +348,9 @@ sub send
     $self->{'bytesOut'} += length($message);
 
     $message .= "\r\n";
+
+    $message = from_utf8({ -string => $message, 
+			   -charset => $self->encoding()});
 
     if (not defined $noIgnore and $self->ignore($message)) {
 	return 0;
@@ -434,7 +456,26 @@ sub handleCommand
 	$self->cmdLogin($nick, $from, $channel);
 	
 	return;
+    } elsif ($command =~ /^.e (.*)/) {
+
+        my $encoding = $1;
+
+        if(utf8_supported_charset($encoding)) {
+            $self->set_encoding($encoding);
+            $self->send("269 Encoding set to $encoding");
+	} else {
+            $self->send("469 I'm very sorry, $encoding is not known to this system, try .E for a list");
+        }
+
+        return;
+    } elsif ($command =~ /^.E/) {
+
+        my @encodings = utf8_supported_charset;
+
+        $self->send("169 Known encodings: ". join(" ", @encodings));
+        return;
     }
+
 
     # all other commands require the client to first log in.
 
@@ -446,7 +487,7 @@ sub handleCommand
     # check for remaining commands
 
     if ($command =~ /^\.n *(\S+)/) {
- 
+
 	$self->resetIdleTime();
 
 	$self->cmdChangeNick($1);
@@ -570,11 +611,17 @@ sub readClientData
     while ($buf =~ s/^([^\r\n]+)\r?\n//) {
 	my $command = $1;
 
+	$command = to_utf8({ -string => $command,
+			     -charset => $self->encoding()});
+	# filtering out these should be fine
 	$command =~ s/[\000-\037]/?/g;		# remove control chars
-	$command =~ s/[\200-\237]/?/g;		# remove control chars
 
-	$command =~ s/\377[\360-\372]//g;	# remove telnet options
-	$command =~ s/\377[\373-\376].//g;
+	# whereas these are a problem for Unicode, and shouldn't hurt anyways
+#	$command =~ s/[\200-\237]/?/g;		# remove control chars
+
+	# and nobody uses telnet anymore, right?
+#	$command =~ s/\377[\360-\372]//g;	# remove telnet options
+#	$command =~ s/\377[\373-\376].//g;
 
 	$self->handleCommand($command);
     }
@@ -1047,6 +1094,8 @@ sub cmdHelp {
 100-.u [<description>] <url>     Abbreviate <url> and put it to the public\r
 100-                             URL list as well as to the current channel.\r
 100-                             http://vchat.berlin.ccc.de/rd/0 has the list\r
+100-.e [encoding]                Set character set encoding of your client.\r
+100-.E                           Show list of known character set encodings.\n
 100-.t [<topic>]                 Show/set channel topic\r
 100-.x [<reason>]                Exit\r
 100-.h                           You just found out what this does.\r
