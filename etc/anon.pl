@@ -9,8 +9,6 @@ $bin = "/home/vchatd/vchat/client";
 
 $ENV{LC_CTYPE} = 'de_DE.ISO_8859-1';
 
-print "\n* Welcome to berlin.ccc.de\n";
-
 $from = `who am i`;
 chomp $from;
 $from =~ s/.*\((.*)\).*/$1/;
@@ -36,13 +34,6 @@ if ($ENV{TERM} eq 'su') {
 	sleep(400);
 	exit(0);
 }
-
-print "
-* The chat is always under development.  Feel free to visit us any time.
-* Send complaints or suggestions to hans\@berlin.ccc.de.
-
-* You are connected from $from\n";
-
 
 `stty intr ^c kill ^u erase ^h discard ^o`;
 
