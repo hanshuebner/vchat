@@ -43,6 +43,9 @@ sub load_new_urls {
 	$description =~ s/\&/&amp;/g;
 	$description =~ s/</&lt;/g;
 	$description =~ s/>/&gt;/g;
+	$url =~ s/\&/&amp;/g;
+	$url =~ s/</&lt;/g;
+	$url =~ s/>/&gt;/g;
 	my $skey = substr($key, 0, 42);
 	my $link = "<a href=\"$url\">$skey</a>";
         my $urlfile;
