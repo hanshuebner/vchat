@@ -190,7 +190,6 @@ sub serve_request
     } elsif ($page  =~ /^rss\/{0,1}([0-9]*)([s|d|m|h]{0,1})/ ) {
 		print "HTTP/1.1 200 OK\r\n";
 		print "Server: vchat-rd/1.0\r\n";
-        print "Cache-control: no-cache\r\n".
 		print "Content-Type: application/rss+xml\r\n\r\n";
 
         my ($deltat);
