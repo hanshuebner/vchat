@@ -222,7 +222,7 @@ sub serve_request
                 "    xmlns=\"http://purl.org/rss/1.0/\"\n".
                 "    xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n".
                 "    xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n".
-                "    xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n".
+                "    xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n";
 
         print    "<channel rdf:about=\"https://vchat.berlin.ccc.de/rd/\">\n".
                 "    <title>vchat urilog</title>\n".
@@ -244,7 +244,7 @@ sub serve_request
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
 
-                print "<rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/$$entry[8]\" />";
+                print "            <rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/".$$entry[8]."\" />\n";
             } else {
                 last;
             }
@@ -258,12 +258,12 @@ sub serve_request
         foreach my $entry (@urls) {
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
-                print "<item rdf:about=\"https://vchat.berlin.ccc.de/rd/$$entry[8]\">\n";
-                print "    <title>".$$entry[5]."</title>\n";
+                print "<item rdf:about=\"https://vchat.berlin.ccc.de/rd/".$$entry[8].\">\n";
+                print "    <title>".$$entry[4]."</title>\n";
                 print "    <link>".$$entry[5]."</link>\n";
                 print "    <dc:creator>".$$entry[7]."</dc:creator>\n";
                 print "    <dc:date>".$$entry[0]."$timediff</dc:date>\n";
-                print "</item>";
+                print "</item>\n";
             } else {
                 last;
             }
