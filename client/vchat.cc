@@ -2,9 +2,13 @@
 
 // vchat.cc	Simple chat client
 
-// $Header: /Users/hans/Downloads/cvsroot/vchat/client/vchat.cc,v 1.1 2003/04/08 15:45:28 erdgeist Exp $
+// $Header: /Users/hans/Downloads/cvsroot/vchat/client/vchat.cc,v 1.2 2005/03/14 20:02:13 saite Exp $
 
 // $Log: vchat.cc,v $
+// Revision 1.2  2005/03/14 20:02:13  saite
+// fix build errors on newer c++ compilers (tested: gcc version 3.4.2 [FreeBSD]
+// 20040728)
+//
 // Revision 1.1  2003/04/08 15:45:28  erdgeist
 // Initial import
 //
@@ -121,7 +125,7 @@
 #include <sys/param.h>
 
 #include <iostream.h>
-#include <strstream.h>
+#include <strstream>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -507,7 +511,7 @@ main(int argc, char *argv[])
     }
   }
 
-  rl_bind_key('L' - '@', clearScreen);
+  rl_bind_key('L' - '@', (rl_command_func_t *)clearScreen);
 
   if (!from) {		// set up 'from' specification
 

@@ -104,7 +104,8 @@ Terminal::Terminal(const char *type)
 #if defined(HPUX) || defined(HPUX11)
   ofstream("/dev/tty")
 #else
-  ostream(cout.ostreambuf())
+//  ostream(cout.ostreambuf())
+  ostream(cout.rdbuf())
 #endif
 {
 
