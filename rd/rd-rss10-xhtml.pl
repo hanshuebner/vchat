@@ -53,7 +53,7 @@ sub load_new_urls {
 #        };
 	my $nicklink = "<a href=\"$httppath?$nick\"><b>$nick</b></a>";
 	$count++;
-	push @urls, [ $timeparsed, $link, $urlfile, $nicklink, $description,$url,$time,$nick];
+	push @urls, [ $timeparsed, $link, $urlfile, $nicklink, $description,$url,$time,$nick,$key];
     }
     #print "urls umdrehen\n";
     #@urls = reverse(@urls);
@@ -244,7 +244,7 @@ sub serve_request
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
 
-                print "<rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/"$key"\" />";
+                print "<rdf:li rdf:resource=\"https://vchat.berlin.ccc.de/rd/$$entry[8]\" />";
             } else {
                 last;
             }
@@ -258,7 +258,7 @@ sub serve_request
         foreach my $entry (@urls) {
             if((time()-$$entry[6])<($deltat)) {
                 $$entry[0] =~ s/(\d+)\.(\d+)\.(\d+) (\d+:\d+)/$3-$2-$1T$4/;
-                print "<item rdf:about=\"https://vchat.berlin.ccc.de/rd/"$key"\">\n";
+                print "<item rdf:about=\"https://vchat.berlin.ccc.de/rd/$$entry[8]\">\n";
                 print "    <title>".$$entry[5]."</title>\n";
                 print "    <link>".$$entry[5]."</link>\n";
                 print "    <dc:creator>".$$entry[7]."</dc:creator>\n";
