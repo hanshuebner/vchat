@@ -456,7 +456,7 @@ sub handleCommand
 	$self->cmdLogin($nick, $from, $channel);
 	
 	return;
-    } elsif ($command =~ /^.e (.*)/) {
+    } elsif ($command =~ /^\.e (.*)/) {
 
         my $encoding = $1;
 
@@ -468,11 +468,20 @@ sub handleCommand
         }
 
         return;
-    } elsif ($command =~ /^.E/) {
+    } elsif ($command =~ /^\.E/) {
 
         my @encodings = utf8_supported_charset;
+        my $tmpstring = "Known encodings: ";
+        foreach(@encodings) {
+          if(length($tmpstring)+length($_)>65) {
+            $self->send("169-$tmpstring");
+            $tmpstring = "";
+          }
+          $tmpstring .= $_." ";
+        }
+        $self->send("169 $tmpstring");
 
-        $self->send("169 Known encodings: ". join(" ", @encodings));
+
         return;
     }
 
@@ -553,6 +562,26 @@ sub handleCommand
 	    }
 	}
 
+    } elsif ($command =~ /^\.o *(.+)/) {
+
+	my $thoughts = $1;
+
+        if (not defined $self->channel) {
+            $self->send("100 Not joined to a channel");
+        } else {
+
+	my $sentTo
+		= $self->channel->send("118 ".$self->nick.": .o( ".$thoughts." )",
+					$self);
+
+	$self->resetIdleTime();
+
+        if ($sentTo == 0) {
+		$self->send("100 Nobody sees what you do");
+	}
+
+	}
+
     } elsif ($command =~ /^\.u\s*(.*?) *(\S*)\s*$/) {
 
 	$self->resetIdleTime();
@@ -611,7 +640,7 @@ sub readClientData
     while ($buf =~ s/^([^\r\n]+)\r?\n//) {
 	my $command = $1;
 
-	$command = to_utf8({ -string => $command,
+	$command = to_utf8({ -string => $command, 
 			     -charset => $self->encoding()});
 	# filtering out these should be fine
 	$command =~ s/[\000-\037]/?/g;		# remove control chars
@@ -860,12 +889,13 @@ sub cmdShowClientOrChannel {
 	    $self->send("412 bad nick name $client");
 	} else {
 	    $self->send("116 "
-			."Nick:"      . $client->nick . " "
-			."From:"      . $client->from . " "
-			."AuthFrom:"  . $client->authorizedFrom . " "
-			."isReg:"     . $client->isRegistered . " "
-			."Clientinfo:". $client->clientinfo . " "
-			."Stats:"     . $client->stats($self));
+			. $client->nick . " "
+                       # . $client->authorizedNick . " " 
+			. $client->from . " "
+			. $client->authorizedFrom . " "
+			. $client->isRegistered . " "
+			. $client->clientinfo . " "
+			. $client->stats($self));
 	   #foreach(keys %client) {$self->send( "116 $self{$_} : $_\n");}
 	}
     }
@@ -1026,7 +1056,7 @@ sub cmdURL {
 	return;
     }
 
-    if ($url =~ m-http://vchat.berlin.ccc.de/rd/-) {
+    if ($url =~ m-http://vchat.berlin.ccc.de/rd/- && $url =~ m-https://vchat.berlin.ccc.de/rd/-) {
 	$self->send("402 Invalid URL (can't self-reference)");
 	return;
     }
@@ -1048,7 +1078,7 @@ sub cmdURL {
     my $key = "${domain}-${id}";
     my $now = time;
     print URLMAP "$now $key ", $self->nick, " $url $description\n";
-    my $mappedURL = "http://vchat.berlin.ccc.de/rd/${key}";
+    my $mappedURL = "https://vchat.berlin.ccc.de/rd/${key}";
 
     if (scalar @savedURLs == 20) {
 	shift @savedURLs;
@@ -1093,9 +1123,9 @@ sub cmdHelp {
 100-                             ignorance list if <string> is not given.\r
 100-.u [<description>] <url>     Abbreviate <url> and put it to the public\r
 100-                             URL list as well as to the current channel.\r
-100-                             http://vchat.berlin.ccc.de/rd/0 has the list\r
+100-                             https://vchat.berlin.ccc.de/rd/0 has the list\r
 100-.e [encoding]                Set character set encoding of your client.\r
-100-.E                           Show list of known character set encodings.\n
+100-.E                           Show list of known character set encodings.\r
 100-.t [<topic>]                 Show/set channel topic\r
 100-.x [<reason>]                Exit\r
 100-.h                           You just found out what this does.\r
