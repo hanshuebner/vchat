@@ -568,17 +568,18 @@ sub handleCommand
     } elsif ($command =~ /^\.o *(.+)/ || $command =~ /^\.O *(.+)/) {
 
 	my $thoughts = $1;
+	my $sentTo;
 
         if (not defined $self->channel) {
             $self->send("100 Not joined to a channel");
         } else {
 
 	if($command =~ /^\.o *(.+)/) {
-	my $sentTo
+	 $sentTo
 		= $self->channel->send("124 ".$self->nick." .o( ".$thoughts." )",
 					$self);
-        } elsif($command =~ /^\.O *(.+)/) {
-	my $sentTo
+	} elsif($command =~ /^\.O *(.+)/) {
+	 $sentTo
 		= $self->channel->send("124 ".$self->nick." .oO( ".$thoughts." )",
 					$self);
 	}
