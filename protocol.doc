@@ -78,6 +78,10 @@ URL-List entry
 
 123 <nick> <timestamp> <action> [ <timestamp> <action> ... ]
 
+Thoughts
+
+124 <nick> <thoughts>
+
 Nick-Action information
 
 201 <protocol> <server-name>
