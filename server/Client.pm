@@ -91,7 +91,6 @@ sub isReservedNick {
 	@keylist = <KEYS>;
 	push (@keylist, <KEYSTWO>);
 	foreach (@keylist) {
-	#while (<KEYS>) {
 	    if (/"CHATNICK=$nick"/i) {
 		$retval = 1;
 	    }
@@ -102,13 +101,17 @@ sub isReservedNick {
         warn "$0: can't open keys file $authorizedKeysFile or $authorizedKeysFileTwo: $!\n";
     }
 
-  if (not $retval) {
+  if ($retval == 0) {
       if (open(CA_INDEX, $caIndexFile)) {
-	  while (<CA_INDEX>) {
-	      if (m-/CN=$nick/-i) {
+
+	  foreach (<CA_INDEX>) {
+
+	   if (m-/CN=$nick/-i) {
 		  $retval = 1;
-	      }
+	   }
+
 	  }
+
       } else {
 	  warn "$0: can't open CA index file $caIndexFile: $!\n";
       }
@@ -571,7 +574,7 @@ sub handleCommand
         } else {
 
 	my $sentTo
-		= $self->channel->send("118 ".$self->nick.": .o( ".$thoughts." )",
+		= $self->channel->send("124 ".$self->nick." .o( ".$thoughts." )",
 					$self);
 
 	$self->resetIdleTime();
